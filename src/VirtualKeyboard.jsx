@@ -2,7 +2,7 @@ import {React, useState, useEffect, useCallback } from 'react';
 import "./VirtualKeyboard.css";
 import axios from 'axios';
 
-export default function VirtualKeyboard() {
+export default function VirtualKeyboard({ onNewWord }) {
   // State to hold the typed letters
   const [text, setText] = useState("");
 
@@ -18,19 +18,39 @@ export default function VirtualKeyboard() {
     }
   };
 
+  const handlePlay = (e) => {
+    e.preventDefault();
+    fetch("http://127.0.0.1:5001/post-words", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ yorubaWord: text }),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      onNewWord(data.yorubaWords);
+      setText(""); // Clear the input field
+    })
+    .catch((error) => {
+      console.error("An error occurred:", error);
+    });
+  };
+
   return (
     <div className='keyboard--container'>
-      <form className='keyboard--form-container'>
+      <form className='keyboard--form-container' onSubmit={handlePlay}>
         <div className='keyboard--text-field-button'>
           <input
             type='text'
+            name="yorubaWord"
             placeholder='Type your Yorùbá text here...'
             value={text}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             className='keyboard--text-field'
           />
-          <input type='button' value="Play"/>
+          <input type='submit' value="Play"/>
           <input type='button' value="Delete" onClick={e => setText(text.slice(0, -1))}/>
         </div>
         <div className='keyboard--lower-keys'>
